@@ -24,7 +24,7 @@ body{background:#f8f9fb;color:#1e293b;font-family:-apple-system,'Noto Sans KR',s
 .btn{width:100%;padding:14px;border-radius:12px;border:none;cursor:pointer;color:#fff;font-size:15px;font-weight:800;margin-top:10px}
 .btn:active{opacity:.85}
 .cv-box{background:#e2e8f0;border-radius:12px;overflow:hidden;border:2px solid #cbd5e1;margin-top:10px}
-canvas{width:100%;display:block}
+canvas{width:100%;display:block;cursor:grab}
 .status{padding:10px;border-radius:10px;background:#ecfdf5;border:1.5px solid #6ee7b7;font-size:13px;color:#059669;font-weight:600;margin-top:8px;display:none}
 .status.show{display:block}
 .qstyle{padding:6px 12px;border-radius:10px;font-size:12px;cursor:pointer;border:1.5px solid #e9d5ff;background:#faf5ff;color:#7c3aed;font-weight:600}
@@ -38,7 +38,7 @@ textarea{width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px;f
 .sa-bar{padding:8px 12px;background:#eef2ff;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#4338ca;font-weight:700}
 .sa-bar button{background:#c7d2fe;border:none;border-radius:99px;width:24px;height:24px;color:#4338ca;cursor:pointer;font-weight:700}
 </style></head><body>
-<div class="hdr"><h1>🎨 ZEPETO TEXTURE FACTORY</h1><p>5단계: 템플릿 등록 → 프롬프트 생성 → 이미지 적용 → 다운로드</p></div>
+<div class="hdr"><h1>🎨 ZEPETO TEXTURE FACTORY</h1><p>템플릿 + 텍스처 + 디자인 이미지 = Multiply 합성 → 요소 추가 → 다운로드</p></div>
 <div class="wrap">
 
 <!-- STEP 1 -->
@@ -53,40 +53,64 @@ textarea{width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px;f
   <div class="status" id="st1"></div>
 </div>
 
-<!-- STEP 2 -->
+<!-- STEP 1.5: 텍스처 -->
 <div class="step">
-  <div class="step-hd"><span class="step-num" style="background:#7c3aed">2</span>레퍼런스 이미지 → 프롬프트 생성</div>
-  <div class="up-box" onclick="document.getElementById('refIn').click()" style="border-color:#c084fc;background:#faf5ff;color:#7c3aed;margin-bottom:10px">📷 레퍼런스 디자인 이미지 업로드
-    <input type="file" id="refIn" accept="image/*" style="display:none" onchange="handleRefUp(event)">
+  <div class="step-hd"><span class="step-num" style="background:#f59e0b">T</span>텍스처 업로드 (베이스 레이어 · 영구저장)</div>
+  <p style="font-size:12px;color:#64748b;margin-bottom:10px">천 질감 이미지가 UV 아일랜드 안에 베이스로 깔리고, 디자인 이미지가 Multiply로 위에 합성됩니다</p>
+  <div class="up-box" onclick="document.getElementById('texIn').click()" style="border-color:#f59e0b;background:#fffbeb;color:#b45309">🧵 텍스처 이미지 업로드 (영구저장)
+    <input type="file" id="texIn" accept="image/*" style="display:none" onchange="handleTexUp(event)">
   </div>
-  <div id="refPrev" style="display:none"><img id="refImg" class="prev-img"><p style="font-size:11px;color:#64748b;text-align:center">↑ 이 이미지 스타일로 프롬프트 생성</p></div>
-  <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">
-    <button class="qstyle" onclick="setS('빈티지 워싱 데님, 무릎 자연스러운 탈색, 인디고 블루')">👖데님</button>
-    <button class="qstyle" onclick="setS('블루 타탄 체크, 네이비+화이트+레드')">🏴타탄</button>
-    <button class="qstyle" onclick="setS('핑크 플라워 패턴, 봄 파스텔')">🌸플라워</button>
-    <button class="qstyle" onclick="setS('블랙 레더 질감, 광택 가죽')">🖤레더</button>
-    <button class="qstyle" onclick="setS('꽈배기 니트, 겨울 울 소재')">🧶니트</button>
-    <button class="qstyle" onclick="setS('카모플라주, 밀리터리 그린')">🪖카모</button>
-    <button class="qstyle" onclick="setS('새틴 실크, 광택 부드러운 천')">✨새틴</button>
-    <button class="qstyle" onclick="setS('타이다이, 무지개 컬러 빈티지')">🌈타이다이</button>
+  <div id="texPrev" style="display:none;margin-top:8px;background:#fff;border-radius:10px;border:1.5px solid #e2e8f0;padding:8px;text-align:center">
+    <img id="texImg" class="prev-img">
+    <p style="font-size:11px;color:#64748b;margin-top:4px">↑ Multiply 블렌드로 적용됨</p>
+    <button onclick="removeTex()" style="margin-top:4px;padding:4px 12px;border-radius:6px;border:1px solid #fca5a5;background:#fef2f2;color:#dc2626;font-size:11px;cursor:pointer">텍스처 제거</button>
   </div>
-  <textarea id="styleIn" rows="2" placeholder="원하는 디자인 스타일 입력 (또는 위 버튼 클릭)"></textarea>
-  <button class="btn" style="background:linear-gradient(135deg,#7c3aed,#c084fc)" onclick="genPrompt()">✨ Gemini 프롬프트 생성</button>
-  <div id="promptBox" style="display:none;margin-top:10px">
-    <textarea id="promptResult" rows="6" readonly style="background:#faf5ff;border-color:#c084fc;font-size:12px"></textarea>
-    <div style="display:flex;gap:8px;margin-top:8px">
-      <button class="btn" style="flex:1;background:#7c3aed" onclick="copyP()">📋 복사</button>
-      <button class="btn" style="flex:1;background:#4285f4" onclick="window.open('https://gemini.google.com/app','_blank')">🚀 Gemini</button>
-    </div>
-    <div id="cpSt" style="display:none;text-align:center;padding:6px;color:#059669;font-weight:700;font-size:13px">✅ 복사됨!</div>
-  </div>
+  <div style="margin-top:8px"><label style="font-size:11px;color:#64748b">텍스처 강도 <span id="texOV">80</span>%</label><input type="range" id="texOR" min="0" max="100" value="80" oninput="renderCanvas()"></div>
+  <div class="status" id="stTex"></div>
 </div>
 
-<!-- STEP 3+4 -->
+<!-- STEP 2: AI 자동 생성 또는 직접 업로드 -->
 <div class="step">
-  <div class="step-hd"><span class="step-num" style="background:#059669">3</span>디자인 이미지 → 템플릿 적용</div>
-  <p style="font-size:12px;color:#64748b;margin-bottom:10px">Gemini에서 생성된 이미지 또는 직접 만든 디자인 이미지를 업로드하면 현재 템플릿에 자동 적용됩니다</p>
-  <div class="up-box" onclick="document.getElementById('designIn').click()" style="border-color:#10b981;background:#ecfdf5;color:#059669">🖼️ 디자인 이미지 업로드 (템플릿에 자동 적용)
+  <div class="step-hd"><span class="step-num" style="background:#059669">2</span>디자인 이미지 (AI 자동생성 또는 직접 업로드)</div>
+
+  <!-- AI 설정 -->
+  <div style="margin-bottom:12px;padding:12px;border-radius:10px;background:#f0fdf4;border:1.5px solid #bbf7d0">
+    <div style="font-size:13px;font-weight:700;color:#166534;margin-bottom:8px">🤖 AI 자동 생성 (Gemini)</div>
+    <div style="margin-bottom:8px">
+      <label style="font-size:11px;color:#64748b">API Key (Google AI Studio에서 발급 · 로컬 저장)</label>
+      <div style="display:flex;gap:6px">
+        <input type="password" id="apiKey" placeholder="AIza..." style="flex:1;padding:8px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-family:monospace">
+        <button onclick="saveApiKey()" style="padding:8px 12px;border-radius:8px;border:1.5px solid #10b981;background:#ecfdf5;color:#059669;font-size:12px;cursor:pointer;white-space:nowrap">💾 저장</button>
+      </div>
+      <div style="font-size:10px;color:#94a3b8;margin-top:3px"><a href="https://aistudio.google.com/apikey" target="_blank" style="color:#6366f1">API 키 발급 →</a> (무료)</div>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:8px">
+      <div style="flex:1">
+        <label style="font-size:11px;color:#64748b">📷 앞면 사진</label>
+        <div class="up-box" onclick="document.getElementById('frontIn').click()" style="padding:10px;font-size:12px;border-color:#86efac;background:#f0fdf4;color:#166534">
+          앞면 업로드<input type="file" id="frontIn" accept="image/*" style="display:none" onchange="handleAiImg('front',event)">
+        </div>
+        <img id="frontPrev" style="display:none;width:100%;border-radius:6px;margin-top:4px">
+      </div>
+      <div style="flex:1">
+        <label style="font-size:11px;color:#64748b">📷 뒷면 사진</label>
+        <div class="up-box" onclick="document.getElementById('backIn').click()" style="padding:10px;font-size:12px;border-color:#86efac;background:#f0fdf4;color:#166534">
+          뒷면 업로드<input type="file" id="backIn" accept="image/*" style="display:none" onchange="handleAiImg('back',event)">
+        </div>
+        <img id="backPrev" style="display:none;width:100%;border-radius:6px;margin-top:4px">
+      </div>
+    </div>
+    <textarea id="aiStyle" rows="2" placeholder="추가 스타일 지시 (선택사항: 예 - 워싱 강하게, 컬러 진하게)" style="margin-bottom:8px"></textarea>
+    <button class="btn" style="background:linear-gradient(135deg,#059669,#10b981);margin-top:0" onclick="generateAI()" id="aiBtn">🤖 AI 텍스처 자동 생성</button>
+    <div id="aiProgress" style="display:none;text-align:center;padding:12px;color:#059669;font-size:13px">⏳ Gemini가 텍스처 생성 중... (10~30초)</div>
+    <div class="status" id="stAi"></div>
+  </div>
+
+  <!-- 구분선 -->
+  <div style="text-align:center;margin:12px 0;color:#94a3b8;font-size:12px">── 또는 직접 업로드 ──</div>
+
+  <!-- 직접 업로드 -->
+  <div class="up-box" onclick="document.getElementById('designIn').click()" style="border-color:#10b981;background:#ecfdf5;color:#059669">🖼️ 디자인 이미지 직접 업로드
     <input type="file" id="designIn" accept="image/*" style="display:none" onchange="handleDesignUp(event)">
   </div>
   <div id="colorCtrl" style="display:none;margin-top:12px">
@@ -111,9 +135,19 @@ textarea{width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px;f
   <div class="status" id="st3"></div>
 </div>
 
+<!-- STEP 4: 디자인 요소 -->
+<div class="step">
+  <div class="step-hd"><span class="step-num" style="background:#ec4899">3</span>디자인 요소 추가 (드래그로 위치 · 사이즈 조절)</div>
+  <p style="font-size:12px;color:#64748b;margin-bottom:10px">로고, 패치, 텍스트 이미지 등을 올리면 캔버스 위에서 드래그로 위치 이동, 사이즈 조절 가능</p>
+  <div class="up-box" onclick="document.getElementById('elemIn').click()" style="border-color:#ec4899;background:#fdf2f8;color:#be185d">🎀 디자인 요소 이미지 추가
+    <input type="file" id="elemIn" accept="image/*" style="display:none" onchange="handleElemUp(event)">
+  </div>
+  <div id="elemList" style="margin-top:8px"></div>
+</div>
+
 <!-- STEP 5 -->
 <div class="step">
-  <div class="step-hd"><span class="step-num" style="background:#f43f5e">5</span>PNG 다운로드</div>
+  <div class="step-hd"><span class="step-num" style="background:#f43f5e">4</span>PNG 다운로드</div>
   <button class="btn" style="background:linear-gradient(135deg,#6366f1,#f43f5e)" onclick="doDownload()">⬇️ 512×512 PNG 다운로드</button>
   <div class="sa" id="saveArea"><div class="sa-bar"><span>👇 꾹 눌러 저장</span><button onclick="document.getElementById('saveArea').className='sa'">✕</button></div><img id="saveImg"></div>
 </div>
@@ -137,7 +171,7 @@ var CATS=[
 var TMPL_INIT={"뷔스티에 원피스":"DR_32","슬림핏 원피스":"DR_33","오바사이즈 후드":"TOP_35"};
 var cv=document.getElementById("cv"),ctx=cv.getContext("2d");
 var curCat="dress",curSub="뷔스티에 원피스";
-var maskData=null,tmplMap={},maskCache={},designImg=null;
+var maskData=null,tmplMap={},maskCache={},designImg=null,textureImg=null,textureData=null;
 
 // ═══ STORAGE ═══
 // Pre-built templates load immediately (no storage dependency)
@@ -165,6 +199,61 @@ function loadSaved(){
 }
 
 var restored=loadSaved();
+
+// Texture save/load (localStorage)
+function saveTexture(subName, dataUrl){
+  try{localStorage.setItem('zepeto_tex_'+subName, dataUrl);}catch(e){}
+}
+function loadTexture(subName){
+  try{return localStorage.getItem('zepeto_tex_'+subName)||null;}catch(e){return null;}
+}
+function removeTexture(subName){
+  try{localStorage.removeItem('zepeto_tex_'+subName);}catch(e){}
+}
+
+function loadTexImg(){
+  var src=loadTexture(curSub);
+  if(src){
+    var im=new Image();im.onload=function(){
+      textureImg=im;
+      // Get texture pixel data for multiply
+      var tc=document.createElement("canvas");tc.width=512;tc.height=512;
+      tc.getContext("2d").drawImage(im,0,0,512,512);
+      textureData=tc.getContext("2d").getImageData(0,0,512,512).data;
+      document.getElementById("texImg").src=src;
+      document.getElementById("texPrev").style.display="block";
+      renderCanvas();
+    };im.src=src;
+  } else {
+    textureImg=null;textureData=null;
+    document.getElementById("texPrev").style.display="none";
+  }
+}
+
+function handleTexUp(e){
+  var f=e.target.files[0];if(!f)return;
+  var r=new FileReader();r.onload=function(ev){
+    var im=new Image();im.onload=function(){
+      textureImg=im;
+      var tc=document.createElement("canvas");tc.width=512;tc.height=512;
+      tc.getContext("2d").drawImage(im,0,0,512,512);
+      textureData=tc.getContext("2d").getImageData(0,0,512,512).data;
+      saveTexture(curSub, ev.target.result);
+      document.getElementById("texImg").src=ev.target.result;
+      document.getElementById("texPrev").style.display="block";
+      var s=document.getElementById("stTex");s.textContent="✅ ["+curSub+"] 텍스처 저장 완료!";s.className="status show";
+      setTimeout(function(){s.className="status";},3000);
+      renderCanvas();
+    };im.src=ev.target.result;
+  };r.readAsDataURL(f);e.target.value="";
+}
+
+function removeTex(){
+  removeTexture(curSub);
+  textureImg=null;textureData=null;
+  document.getElementById("texPrev").style.display="none";
+  renderCanvas();
+}
 buildCat();buildSub();loadMask();
 if(restored>0){
   var s=document.getElementById("st1");
@@ -175,6 +264,7 @@ if(restored>0){
 
 function loadMask(){
   document.getElementById("upLabel").textContent=curSub;
+  loadTexImg();
   var uv=document.getElementById("uvPrev"),ui=document.getElementById("uvImg");
   var t=tmplMap[curSub];
   if(!t){maskData=null;uv.style.display="none";renderEmpty();return;}
@@ -214,22 +304,139 @@ function handleTmplUp(e){
   };r.readAsDataURL(f);e.target.value="";
 }
 
-// ═══ STEP 2: 레퍼런스+프롬프트 ═══
-function handleRefUp(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){document.getElementById("refImg").src=ev.target.result;document.getElementById("refPrev").style.display="block";};r.readAsDataURL(f);e.target.value="";}
-function setS(s){document.getElementById("styleIn").value=s;}
-function genPrompt(){
-  var s=document.getElementById("styleIn").value.trim();if(!s){alert("스타일을 입력하세요");return;}
-  var cat=CATS.find(function(c){return c.id===curCat;});
-  var p="당신은 ZEPETO 3D 아바타 아이템 텍스처 전문가입니다.\n\n";
-  p+="[첨부 이미지]\n첨부된 이미지는 ZEPETO \""+curSub+"\" ("+(cat?cat.l:"")+") UV 텍스처 템플릿입니다.\n\n";
-  p+="[디자인 요청]\n"+s+"\n\n";
-  p+="[필수 규칙]\n1. UV 아일랜드 형태를 100% 유지\n2. 배경(연핑크/흰색)은 변경 금지\n3. UV 내부에만 텍스처 적용\n4. 봉제선, 스티칭, 주름 등 사실적 표현\n5. 512x512 PNG 출력\n6. 3D 모델에 자연스럽게 보이도록 방향/위치 고려\n7. 텍스트/워터마크 금지\n\n이미지를 생성해주세요.";
-  document.getElementById("promptResult").value=p;document.getElementById("promptBox").style.display="block";
-}
-function copyP(){var t=document.getElementById("promptResult");t.select();try{navigator.clipboard.writeText(t.value);}catch(e){document.execCommand("copy");}
-  var s=document.getElementById("cpSt");s.style.display="block";setTimeout(function(){s.style.display="none";},2000);}
+// ═══ STEP 2: AI 생성 + 디자인 이미지 ═══
 
-// ═══ STEP 3+4: 디자인 이미지 적용 ═══
+// API Key management
+function saveApiKey(){
+  var k=document.getElementById("apiKey").value.trim();
+  if(k){localStorage.setItem("gemini_api_key",k);alert("✅ API 키 저장됨!");}
+}
+function loadApiKey(){
+  var k=localStorage.getItem("gemini_api_key");
+  if(k)document.getElementById("apiKey").value=k;
+}
+loadApiKey();
+
+// AI image upload
+var aiImgs={front:null,back:null};
+function handleAiImg(side,e){
+  var f=e.target.files[0];if(!f)return;
+  var r=new FileReader();r.onload=function(ev){
+    aiImgs[side]=ev.target.result;
+    var prev=document.getElementById(side+"Prev");
+    prev.src=ev.target.result;prev.style.display="block";
+  };r.readAsDataURL(f);e.target.value="";
+}
+
+// Gemini API call
+function generateAI(){
+  var key=document.getElementById("apiKey").value.trim();
+  if(!key){alert("API 키를 입력하세요!");return;}
+  if(!aiImgs.front&&!aiImgs.back){alert("앞면 또는 뒷면 사진을 업로드하세요!");return;}
+
+  var t=tmplMap[curSub];
+  var texSrc=loadTexture(curSub);
+
+  document.getElementById("aiBtn").disabled=true;
+  document.getElementById("aiProgress").style.display="block";
+
+  // Build prompt
+  var cat=CATS.find(function(c){return c.id===curCat;});
+  var prompt="당신은 ZEPETO 3D 아바타 아이템 UV 텍스처 전문가입니다.\n\n";
+  prompt+="[작업]\n";
+  prompt+="첨부된 옷 사진(앞면/뒷면)을 보고, UV 텍스처 템플릿에 맞춰서 텍스처 이미지를 새로 그려주세요.\n";
+  prompt+="카테고리: "+curSub+" ("+(cat?cat.l:"")+").\n\n";
+
+  var extra=document.getElementById("aiStyle").value.trim();
+  if(extra)prompt+="[추가 지시]\n"+extra+"\n\n";
+
+  prompt+="[필수 규칙]\n";
+  prompt+="1. 첫번째 첨부 이미지가 UV 텍스처 템플릿입니다. 이 템플릿의 각 UV 아일랜드 형태를 100% 정확히 유지하세요.\n";
+  prompt+="2. 나머지 첨부 이미지는 실제 옷 사진입니다. 이 옷의 색상, 질감, 패턴, 디테일을 UV 아일랜드에 맞게 그려주세요.\n";
+  prompt+="3. 배경(검정색 영역)은 검정(#000000)으로 유지하세요.\n";
+  prompt+="4. 봉제선, 스티칭, 주름, 워싱, 찢김 등 디테일을 사실적으로 표현하세요.\n";
+  prompt+="5. 512x512 픽셀 PNG 이미지를 생성하세요.\n";
+  prompt+="6. 텍스트, 워터마크, 로고 절대 넣지 마세요.\n";
+  prompt+="7. 각 UV 아일랜드의 위치와 방향에 맞게 옷의 해당 부분을 정확히 매핑하세요.\n\n";
+  prompt+="이 규칙을 엄격히 지켜서 텍스처 이미지를 생성해주세요.";
+
+  // Build parts
+  var parts=[{text:prompt}];
+
+  // Add template/texture image
+  if(t&&t.ts){
+    parts.push({inline_data:{mime_type:"image/png",data:t.ts.split(",")[1]}});
+  }
+  if(texSrc){
+    parts.push({inline_data:{mime_type:"image/png",data:texSrc.split(",")[1]}});
+  }
+
+  // Add clothing photos
+  if(aiImgs.front){
+    var fd=aiImgs.front.split(",");
+    var fmime=fd[0].match(/:(.*?);/)[1];
+    parts.push({inline_data:{mime_type:fmime,data:fd[1]}});
+  }
+  if(aiImgs.back){
+    var bd=aiImgs.back.split(",");
+    var bmime=bd[0].match(/:(.*?);/)[1];
+    parts.push({inline_data:{mime_type:bmime,data:bd[1]}});
+  }
+
+  // Call Gemini API
+  fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key="+key,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      contents:[{parts:parts}],
+      generationConfig:{responseModalities:["TEXT","IMAGE"]}
+    })
+  })
+  .then(function(r){return r.json();})
+  .then(function(data){
+    document.getElementById("aiBtn").disabled=false;
+    document.getElementById("aiProgress").style.display="none";
+
+    if(data.error){
+      var s=document.getElementById("stAi");
+      s.textContent="❌ "+data.error.message;s.style.background="#fef2f2";s.style.borderColor="#fca5a5";s.style.color="#dc2626";
+      s.className="status show";return;
+    }
+
+    // Extract generated image
+    var candidates=data.candidates;
+    if(candidates&&candidates[0]&&candidates[0].content&&candidates[0].content.parts){
+      var imgPart=null;
+      candidates[0].content.parts.forEach(function(p){
+        if(p.inlineData||p.inline_data){imgPart=p.inlineData||p.inline_data;}
+      });
+      if(imgPart){
+        var mime=imgPart.mimeType||imgPart.mime_type||"image/png";
+        var imgData=imgPart.data;
+        var src="data:"+mime+";base64,"+imgData;
+        var im=new Image();im.onload=function(){
+          designImg=im;
+          document.getElementById("colorCtrl").style.display="block";
+          resetColor();renderCanvas();
+          var s=document.getElementById("stAi");
+          s.textContent="✅ AI 텍스처 생성 완료! 아래 캔버스에 자동 적용됨";
+          s.className="status show";
+        };im.src=src;
+        return;
+      }
+    }
+    var s=document.getElementById("stAi");
+    s.textContent="⚠️ 이미지 생성 실패 - 다시 시도하세요";s.style.background="#fef3c7";s.style.borderColor="#fcd34d";s.style.color="#92400e";
+    s.className="status show";
+  })
+  .catch(function(err){
+    document.getElementById("aiBtn").disabled=false;
+    document.getElementById("aiProgress").style.display="none";
+    var s=document.getElementById("stAi");
+    s.textContent="❌ 네트워크 오류: "+err.message;s.style.background="#fef2f2";s.style.borderColor="#fca5a5";s.style.color="#dc2626";
+    s.className="status show";
+  });
+}
 function handleDesignUp(e){
   var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){
     var im=new Image();im.onload=function(){designImg=im;
@@ -259,7 +466,7 @@ function hsl2rgb(h,s,l){h/=360;s/=100;l/=100;var r,g,b;
 
 function renderCanvas(){
   if(!maskData){renderEmpty();return;}
-  if(!designImg){ctx.fillStyle="#d1d5db";ctx.fillRect(0,0,512,512);ctx.fillStyle="#6b7280";ctx.font="14px sans-serif";ctx.textAlign="center";ctx.fillText("STEP 3에서 디자인 이미지 업로드",256,250);return;}
+  if(!designImg&&!textureData){ctx.fillStyle="#d1d5db";ctx.fillRect(0,0,512,512);ctx.fillStyle="#6b7280";ctx.font="14px sans-serif";ctx.textAlign="center";ctx.fillText("텍스처 또는 디자인 이미지 업로드",256,250);return;}
   var br=parseInt(document.getElementById("brR").value)||0;
   var ct=parseInt(document.getElementById("ctR").value)||0;
   var sa=parseInt(document.getElementById("saR").value)||0;
@@ -268,44 +475,165 @@ function renderCanvas(){
   var bgHex=document.getElementById("bgCol").value;
   var tintHex=document.getElementById("tintCol").value;
   var sz=parseInt(document.getElementById("szR").value)||100;
+  var texO=parseInt(document.getElementById("texOR").value)||80;
   document.getElementById("brV").textContent=br;document.getElementById("ctV").textContent=ct;
   document.getElementById("saV").textContent=sa;document.getElementById("huV").textContent=hu;
   document.getElementById("tiV").textContent=ti;document.getElementById("szV").textContent=sz;
+  document.getElementById("texOV").textContent=texO;
 
   var bgR=parseInt(bgHex.slice(1,3),16),bgG=parseInt(bgHex.slice(3,5),16),bgB=parseInt(bgHex.slice(5,7),16);
   var tR=parseInt(tintHex.slice(1,3),16),tG=parseInt(tintHex.slice(3,5),16),tB=parseInt(tintHex.slice(5,7),16);
-  var tAmt=ti/100;
+  var tAmt=ti/100;var tMix=texO/100;
 
+  // 1) 베이스: 텍스처 (있으면) 또는 흰색
   var oc=document.createElement("canvas");oc.width=512;oc.height=512;var octx=oc.getContext("2d");
-  // Scale: tile the image at different sizes
-  var drawW=Math.round(512*sz/100),drawH=Math.round(512*sz/100);
-  if(sz===100){octx.drawImage(designImg,0,0,512,512);}
-  else{for(var ty=0;ty<512;ty+=drawH)for(var tx=0;tx<512;tx+=drawW)octx.drawImage(designImg,tx,ty,drawW,drawH);}
+  if(textureData){
+    // 텍스처를 베이스로 깔기
+    octx.putImageData(new ImageData(new Uint8ClampedArray(textureData),512,512),0,0);
+  }else{
+    octx.fillStyle="#ffffff";octx.fillRect(0,0,512,512);
+  }
   var pd=octx.getImageData(0,0,512,512);var d=pd.data;
-  var ctF=(259*(ct+255))/(255*(259-ct));
 
-  for(var i=0;i<512*512;i++){
-    var idx=i*4;
-    if(maskData[i*4]<=128){d[idx]=bgR;d[idx+1]=bgG;d[idx+2]=bgB;continue;}
-    var r=d[idx],g=d[idx+1],b=d[idx+2];
-    // brightness
-    r+=br;g+=br;b+=br;
-    // contrast
-    r=ctF*(r-128)+128;g=ctF*(g-128)+128;b=ctF*(b-128)+128;
-    // hue + saturation
-    if(hu!==0||sa!==0){
-      var hsl=rgb2hsl(Math.min(255,Math.max(0,r)),Math.min(255,Math.max(0,g)),Math.min(255,Math.max(0,b)));
-      hsl[0]=(hsl[0]+hu+360)%360;
-      hsl[1]=Math.min(100,Math.max(0,hsl[1]+sa));
-      var rgb=hsl2rgb(hsl[0],hsl[1],hsl[2]);
-      r=rgb[0];g=rgb[1];b=rgb[2];
+  // 2) 디자인 이미지 Multiply 오버레이
+  if(designImg){
+    var dc=document.createElement("canvas");dc.width=512;dc.height=512;var dctx=dc.getContext("2d");
+    var drawW=Math.round(512*sz/100),drawH=Math.round(512*sz/100);
+    if(sz===100){dctx.drawImage(designImg,0,0,512,512);}
+    else{for(var ty=0;ty<512;ty+=drawH)for(var tx=0;tx<512;tx+=drawW)dctx.drawImage(designImg,tx,ty,drawW,drawH);}
+    var dd=dctx.getImageData(0,0,512,512).data;
+
+    for(var i=0;i<512*512;i++){
+      var idx=i*4;
+      if(maskData[i*4]<=128){d[idx]=bgR;d[idx+1]=bgG;d[idx+2]=bgB;continue;}
+      var br2=d[idx],bg2=d[idx+1],bb2=d[idx+2]; // base (texture)
+      var dr2=dd[idx],dg2=dd[idx+1],db2=dd[idx+2]; // design
+
+      // Multiply blend: base * design / 255
+      var mr=(br2*dr2)/255, mg=(bg2*dg2)/255, mb=(bb2*db2)/255;
+      // Mix: texture*(1-strength) + multiply*strength
+      var r=br2*(1-tMix)+mr*tMix;
+      var g=bg2*(1-tMix)+mg*tMix;
+      var b=bb2*(1-tMix)+mb*tMix;
+
+      // brightness
+      r+=br;g+=br;b+=br;
+      // contrast
+      var ctF=(259*(ct+255))/(255*(259-ct));
+      r=ctF*(r-128)+128;g=ctF*(g-128)+128;b=ctF*(b-128)+128;
+      // hue + saturation
+      if(hu!==0||sa!==0){
+        var hsl=rgb2hsl(Math.min(255,Math.max(0,r)),Math.min(255,Math.max(0,g)),Math.min(255,Math.max(0,b)));
+        hsl[0]=(hsl[0]+hu+360)%360;
+        hsl[1]=Math.min(100,Math.max(0,hsl[1]+sa));
+        var rgb=hsl2rgb(hsl[0],hsl[1],hsl[2]);
+        r=rgb[0];g=rgb[1];b=rgb[2];
+      }
+      // tint
+      if(tAmt>0){r=r*(1-tAmt)+tR*tAmt;g=g*(1-tAmt)+tG*tAmt;b=b*(1-tAmt)+tB*tAmt;}
+      d[idx]=Math.min(255,Math.max(0,r|0));d[idx+1]=Math.min(255,Math.max(0,g|0));d[idx+2]=Math.min(255,Math.max(0,b|0));
     }
-    // tint
-    if(tAmt>0){r=r*(1-tAmt)+tR*tAmt;g=g*(1-tAmt)+tG*tAmt;b=b*(1-tAmt)+tB*tAmt;}
-    d[idx]=Math.min(255,Math.max(0,r|0));d[idx+1]=Math.min(255,Math.max(0,g|0));d[idx+2]=Math.min(255,Math.max(0,b|0));
+  }else{
+    // 디자인 없이 텍스처만
+    for(var i=0;i<512*512;i++){
+      var idx=i*4;
+      if(maskData[i*4]<=128){d[idx]=bgR;d[idx+1]=bgG;d[idx+2]=bgB;}
+    }
   }
   ctx.putImageData(pd,0,0);
+  // Draw design elements on top
+  for(var ei=0;ei<elems.length;ei++){
+    var el=elems[ei];
+    ctx.drawImage(el.img,el.x,el.y,el.w,el.h);
+  }
 }
+
+// ═══ STEP 4: 디자인 요소 ═══
+var elems=[];var dragElem=null,dragOX=0,dragOY=0,cvRect=null;
+
+function handleElemUp(e){
+  var f=e.target.files[0];if(!f)return;
+  var r=new FileReader();r.onload=function(ev){
+    var im=new Image();im.onload=function(){
+      var sc=Math.min(100/im.width,100/im.height,1);
+      elems.push({img:im,x:206,y:206,w:Math.round(im.width*sc),h:Math.round(im.height*sc),src:ev.target.result});
+      buildElemList();renderCanvas();
+    };im.src=ev.target.result;
+  };r.readAsDataURL(f);e.target.value="";
+}
+
+function buildElemList(){
+  var el=document.getElementById("elemList");el.innerHTML="";
+  elems.forEach(function(e,i){
+    var d=document.createElement("div");
+    d.style.cssText="display:flex;align-items:center;gap:8px;padding:8px;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;margin-bottom:6px";
+    d.innerHTML='<img src="'+e.src+'" style="width:40px;height:40px;object-fit:contain;border-radius:4px;border:1px solid #e2e8f0">'+
+      '<div style="flex:1"><div style="font-size:11px;color:#64748b">요소 '+(i+1)+' · '+e.w+'×'+e.h+'</div>'+
+      '<div style="display:flex;align-items:center;gap:4px;margin-top:3px"><span style="font-size:10px;color:#94a3b8">크기</span>'+
+      '<input type="range" min="10" max="300" value="'+e.w+'" oninput="resizeElem('+i+',this.value)" style="flex:1;accent-color:#ec4899">'+
+      '<span style="font-size:10px;color:#94a3b8" id="esz'+i+'">'+e.w+'</span></div></div>'+
+      '<button onclick="removeElem('+i+')" style="padding:4px 8px;border-radius:6px;border:1px solid #fca5a5;background:#fef2f2;color:#dc2626;font-size:11px;cursor:pointer">삭제</button>';
+    el.appendChild(d);
+  });
+}
+
+function resizeElem(i,v){
+  var e=elems[i];if(!e)return;
+  var ratio=e.img.height/e.img.width;
+  e.w=parseInt(v);e.h=Math.round(e.w*ratio);
+  var sp=document.getElementById("esz"+i);if(sp)sp.textContent=e.w;
+  renderCanvas();
+}
+
+function removeElem(i){elems.splice(i,1);buildElemList();renderCanvas();}
+
+// Canvas drag
+cv.addEventListener("mousedown",function(ev){
+  cvRect=cv.getBoundingClientRect();
+  var sx=(ev.clientX-cvRect.left)*(512/cvRect.width);
+  var sy=(ev.clientY-cvRect.top)*(512/cvRect.height);
+  for(var i=elems.length-1;i>=0;i--){
+    var e=elems[i];
+    if(sx>=e.x&&sx<=e.x+e.w&&sy>=e.y&&sy<=e.y+e.h){
+      dragElem=i;dragOX=sx-e.x;dragOY=sy-e.y;return;
+    }
+  }
+});
+cv.addEventListener("mousemove",function(ev){
+  if(dragElem===null)return;
+  cvRect=cvRect||cv.getBoundingClientRect();
+  var sx=(ev.clientX-cvRect.left)*(512/cvRect.width);
+  var sy=(ev.clientY-cvRect.top)*(512/cvRect.height);
+  elems[dragElem].x=Math.round(sx-dragOX);
+  elems[dragElem].y=Math.round(sy-dragOY);
+  renderCanvas();
+});
+cv.addEventListener("mouseup",function(){dragElem=null;});
+cv.addEventListener("mouseleave",function(){dragElem=null;});
+
+// Touch support
+cv.addEventListener("touchstart",function(ev){
+  ev.preventDefault();var t=ev.touches[0];
+  cvRect=cv.getBoundingClientRect();
+  var sx=(t.clientX-cvRect.left)*(512/cvRect.width);
+  var sy=(t.clientY-cvRect.top)*(512/cvRect.height);
+  for(var i=elems.length-1;i>=0;i--){
+    var e=elems[i];
+    if(sx>=e.x&&sx<=e.x+e.w&&sy>=e.y&&sy<=e.y+e.h){
+      dragElem=i;dragOX=sx-e.x;dragOY=sy-e.y;return;
+    }
+  }
+},{passive:false});
+cv.addEventListener("touchmove",function(ev){
+  ev.preventDefault();if(dragElem===null)return;var t=ev.touches[0];
+  cvRect=cvRect||cv.getBoundingClientRect();
+  var sx=(t.clientX-cvRect.left)*(512/cvRect.width);
+  var sy=(t.clientY-cvRect.top)*(512/cvRect.height);
+  elems[dragElem].x=Math.round(sx-dragOX);
+  elems[dragElem].y=Math.round(sy-dragOY);
+  renderCanvas();
+},{passive:false});
+cv.addEventListener("touchend",function(){dragElem=null;});
 
 // ═══ STEP 5: 다운로드 ═══
 function doDownload(){
